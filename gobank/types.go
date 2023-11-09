@@ -7,6 +7,11 @@ import (
 
 // the additional strings to the right, is a specification of how you set the variable names - they are caled struct field tags...
 
+type TransferRequest struct {
+	ToAccount int `json:"firstName"`
+	LastName string `json:"amount"`
+}
+
 type CreateAccountRequest struct {
 	FirstName string  `json:"firstName"`
 	LastName  string  `json:"lastName"`
@@ -29,5 +34,8 @@ func NewAccount(firstName, lastName string) *Account {
 		CreatedAt: time.Now().UTC(),
 	}
 }
+
+
+
 
 
