@@ -42,32 +42,35 @@ func (s* PostgresStore) Init() error {
 func (s* PostgresStore) createAccountTable() error {
 	query := `create table if not exists account (
 		id serial primary key,
-		first_name varchar(50),
-		last_name varchar(50),
+		first_name varchar(100),
+		last_name varchar(100),
 		number serial,
 		encrypted_password varchar(100),
 		balance serial, 
 		created_at timestamp
 	)`
 	_, err := s.db.Exec(query)
+	// even when i remove encrypted_password varchar(100), its still the same thing 
+	// if err != nil {
+	// 	return fmt.Errorf("failed to create account table heree: %v", err)
+	// }
 	return err 
 }
 
-
+// it led to here 
 func (s *PostgresStore) CreateAccount(acc *Account) error {
 	query := `insert into account 
 	(first_name, last_name, number, encrypted_password, balance, created_at)
 	values ($1, $2, $3, $4, $5, $6)`
 
 	resp,err := s.db.Query(
-		query,
-		acc.FirstName,
-		 acc.LastName, 
-		 acc.Number,
-		  acc.EncryptedPassword, 
-		  acc.Balance, 
-		  acc.CreatedAt)
-
+			query,
+			acc.FirstName,
+		 	acc.LastName, 
+		 	acc.Number,
+		  	acc.EncryptedPassword, 
+		  	acc.Balance, 
+		  	acc.CreatedAt)
 	if err != nil {
 		return err
 	}
@@ -84,7 +87,7 @@ func (s *PostgresStore) DeleteAccount(id int) error {
 	return err
 }
 
-func (s * PostgresStore) GetAccountByNumber(number int) (*Account, error) {
+func (s *PostgresStore) GetAccountByNumber(number int) (*Account, error) {
 	rows, err := s.db.Query("select * from account where number = $1", number)
 	if err != nil {
 		return nil,err
@@ -123,7 +126,7 @@ func (s *PostgresStore) GetAccounts() ([]*Account, error) {
 }
 
 func scanIntoAccount( rows *sql.Rows) (*Account, error) {
-	 account := new(Account)
+	 	 account := new(Account)
 		 err := rows.Scan(
 			&account.ID, 
 			&account.FirstName,
@@ -175,3 +178,5 @@ func scanIntoAccount( rows *sql.Rows) (*Account, error) {
 // If i end a route with a slash that does not have a query param , i am going to get a 404 error 
 
 // eg if i have a route localhost:3000/account , and instead i put in postman localhost:3000/account/
+
+// i was having a recurrent error -> column "encrypted_password" of relation "account" does not exist tunrs out the problem was that i had updated the number of columns in my postgres databse , but i did not create a new instance , so it was stoill trying to access a non existent column on an old instance 

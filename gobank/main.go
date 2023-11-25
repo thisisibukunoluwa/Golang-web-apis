@@ -6,6 +6,7 @@ import (
 	"log"
 )
 
+// the error is happening here 
 func seedAccount(store Storage, fname, lname, pw string) *Account {
 	acc, err := NewAccount(fname, lname , pw)
 
@@ -13,6 +14,7 @@ func seedAccount(store Storage, fname, lname, pw string) *Account {
 		log.Fatal(err)
 	} 
 
+	// the error is happening here 
 	if err := store.CreateAccount(acc); err != nil {
 		log.Fatal(err)
 	}

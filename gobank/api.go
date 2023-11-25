@@ -7,7 +7,6 @@ import (
 	"net/http"
 	"os"
 	"strconv"
-
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/gorilla/mux"
 )
@@ -18,9 +17,9 @@ type APIServer struct {
 	store      Storage
 }
 
-func NewAPIServer(listenable string, store Storage) *APIServer {
+func NewAPIServer(listenAddr string, store Storage) *APIServer {
 	return &APIServer{
-		listenAddr: listenable,
+		listenAddr: listenAddr,
 		store: 			 store,	
 	}
 }
@@ -67,6 +66,10 @@ func (s *APIServer) handleLogin(w http.ResponseWriter, r *http.Request) error {
 		return err 
 	}
 
+	if !acc.ValidPassword(req.Password) {
+		return fmt.Errorf("not authenticated")
+	}
+
 	token,err := createJWT(acc)
 
 	if err != nil {
@@ -96,7 +99,7 @@ func (s *APIServer) handleGetAccount(w http.ResponseWriter, r *http.Request) err
 func (s *APIServer) handleGetAccountByID(w http.ResponseWriter, r *http.Request) error {
 
 	if r.Method == "GET" {
-	id, err := getId(r)
+	id, err := getID(r)
 	if err != nil {
 		return err 
 	}
@@ -121,7 +124,11 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 	if err := json.NewDecoder(r.Body).Decode(req); err != nil {
 		return err
 	}
-	account, _ := NewAccount(req.FirstName, req.LastName,req.Password)
+	account, err := NewAccount(req.FirstName, req.LastName,req.Password)
+	if err != nil {
+		return err 
+	}
+	//it led to here
 	if err := s.store.CreateAccount(account); err != nil {
 		return err
 	}
@@ -137,7 +144,7 @@ func (s *APIServer) handleCreateAccount(w http.ResponseWriter, r *http.Request) 
 }
 
 func (s *APIServer) handleDeleteAccount(w http.ResponseWriter, r *http.Request) error {
-	id, err := getId(r)
+	id, err := getID(r)
 	if err != nil {
 		return err 
 	}
@@ -180,7 +187,7 @@ func permissionDenied(w http.ResponseWriter) {
 	WriteJSON(w, http.StatusForbidden, ApiError{Error: "invalid token"})
 }
 
-func withJWTAuth(handleFunc http.HandlerFunc, s Storage) http.HandlerFunc {
+func withJWTAuth(handlerFunc http.HandlerFunc, s Storage) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("calling JWT auth middleware")
 
@@ -196,7 +203,7 @@ func withJWTAuth(handleFunc http.HandlerFunc, s Storage) http.HandlerFunc {
 			permissionDenied(w)
 			return
 		}
-		userID, err := getId(r)
+		userID, err := getID(r)
 
 		account, err := s.GetAccountByID(userID)
 
@@ -209,6 +216,7 @@ func withJWTAuth(handleFunc http.HandlerFunc, s Storage) http.HandlerFunc {
 		// thisis hacky create your own claims with predefined types 
 		if account.Number != int64(claims["accountNumber"].(float64)) {
 			permissionDenied(w)
+			return 
 		}
 		if err != nil {
 			WriteJSON(w, http.StatusForbidden, ApiError{Error: "invalid token"})
@@ -216,7 +224,7 @@ func withJWTAuth(handleFunc http.HandlerFunc, s Storage) http.HandlerFunc {
 		}
 		// fmt.Println(claims)
 		
-		handleFunc(w , r)
+		handlerFunc(w , r)
 	}
 }
 
@@ -252,7 +260,7 @@ func makehttpHandleFunc(f apiFunc) http.HandlerFunc {
 } 
 
 
-func getId( r *http.Request) (int, error) {
+func getID( r *http.Request) (int, error) {
 	idStr := mux.Vars(r)["id"]
 	id,err := strconv.Atoi(idStr)
 	if err != nil {
