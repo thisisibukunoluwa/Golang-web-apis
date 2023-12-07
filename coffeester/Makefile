@@ -26,8 +26,24 @@ create_migration:
 
 migrate_up:
 	sqlx migrate run --database-url "postgres://${USER}:${PASSWORD}@${HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable"
+migrate_down:
+	sqlx migrate revert --database-url "postgres://${USER}:${PASSWORD}@${HOST}:${DB_PORT}/${DB_NAME}?sslmode=disable"
+build:
+	if [ -f "${BINARY}" ]; then \
+		rm ${BINARY}; \
+		echo "Deleted ${BINARY}"; \
+	fi
+	@echo "Building binary"
+	go build -o ${BINARY} cmd/server/*.go 
 
+run: build
+	./${BINARY}
+	@echo "starting binary"
 
+stop:
+	@echo "stopping server..."
+	@-pkill -SIGTERM -f "./{BINARY}"
+	@echo "server stopped"
 
 # i was struggling with running the make file i was getting an error "make: *** No rule to make target `stop_containers'.  Stop." turns out it was because i name my makefile "MakeFile" and not "Makefile"
 
@@ -45,3 +61,19 @@ migrate_up:
 # added a migration script 
 
 # what is migration 
+
+# In the context of a database, migration refers to the process of evolving the database schema and data over time. Database migration is typically necessary when you need to make structural changes to the database, such as adding or removing tables, columns, or indexes, in a way that doesn't disrupt the existing data.
+
+# There are two main types of migrations:
+
+# Schema Migration:
+
+# Definition: Schema migration involves changing the structure or schema of the database, such as creating or altering tables, adding or removing columns, and modifying indexes or constraints.
+# Purpose: It is used to update the database schema to reflect changes in the application's data model.
+# Data Migration:
+
+# Definition: Data migration involves moving or transforming existing data to align with the new schema resulting from a schema migration.
+# Purpose: It ensures that the data remains consistent and usable after structural changes to the database.
+
+## in PgAdmin - main_coffester_db -> Databases -> Schemas -> public -> _sqlx_migrations -> 
+
