@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/joho/godotenv"
+	"github.com/thisisibukunoluwa/Golang-web-apis/coffeester/db"
 )
 
 type Config struct {
@@ -31,16 +32,16 @@ func (app *Application) Serve() error {
 	return srv.ListenAndServe()
 }
 
-
 func main() {
-		err := godotenv.Load()
+	err := godotenv.Load()
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
 	cfg := Config {
 		Port: os.Getenv("PORT"),
 	}
-
+	dsn := os.Getenv("DSN")
+	dbConn,err := db.ConnectPostgres(dsn)
 	app := &Application{
 		Config: cfg,
 	}

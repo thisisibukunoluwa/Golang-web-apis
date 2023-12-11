@@ -24,10 +24,16 @@ func ConnectPostgres(dsn string) (*DB, error) {
 	d.SetMaxOpenConns(maxOpenDbConn)
 	d.SetMaxIdleConns(int(maxDbLifetime))
 	
-	err = testDb(d)
+	err = testDB(d)
+
+	if err != nil  {
+		return nil,err 
+	}
+	dbConn.DB = d 
+	return dbConn, nil 
 }
 
-func testDb(d *sql.DB) error {
+func testDB(d *sql.DB) error {
 	err := d.Ping()
 	if err != nil {
 		fmt.Println("Error", err)
