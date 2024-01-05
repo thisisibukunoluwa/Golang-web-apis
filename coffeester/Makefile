@@ -77,3 +77,5 @@ stop:
 
 ## in PgAdmin - main_coffester_db -> Databases -> Schemas -> public -> _sqlx_migrations -> 
 
+## In Go (Golang), the underscore (_) character has a special meaning when used in an import statement. When you import a package with the underscore, it is indicating to the Go compiler that you want to use the package purely for its side effects, and you don't intend to reference any of its identifiers directly in your code.
+

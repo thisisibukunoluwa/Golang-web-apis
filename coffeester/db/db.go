@@ -4,6 +4,11 @@ import (
 	"database/sql"
 	"fmt"
 	"time"
+
+	_ "github.com/jackc/pgconn"
+	_ "github.com/jackc/pgx/v4"
+	_ "github.com/jackc/pgx/stdlib"
+	_ "github.com/lib/pq"
 )
 
 type DB struct {
@@ -39,6 +44,8 @@ func testDB(d *sql.DB) error {
 		fmt.Println("Error", err)
 		return err 
 	}
-	fmt.Println("*** Pinged database syccessfully! ***")
+	fmt.Println("*** Pinged database successfully! ***")
 	return nil 
 }
+
+

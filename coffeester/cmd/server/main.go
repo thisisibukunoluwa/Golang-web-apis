@@ -8,6 +8,8 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/thisisibukunoluwa/Golang-web-apis/coffeester/db"
+	"github.com/thisisibukunoluwa/Golang-web-apis/coffeester/router"
+	"github.com/thisisibukunoluwa/Golang-web-apis/coffeester/services"
 )
 
 type Config struct {
@@ -16,6 +18,7 @@ type Config struct {
 
 type Application struct {
 	Config Config
+	Models services.Models 
 }
 
 func (app *Application) Serve() error {
@@ -23,11 +26,13 @@ func (app *Application) Serve() error {
 	if err != nil {
 		log.Fatal("Error loading .env file")
 	}
+
 	port := os.Getenv("PORT")
 	fmt.Println("API is listening on port", port)
 
 	srv := &http.Server{
 		Addr: fmt.Sprintf(":%s",port),
+		Handler: router.Routes(), 
 	}
 	return srv.ListenAndServe()
 }
@@ -41,9 +46,18 @@ func main() {
 		Port: os.Getenv("PORT"),
 	}
 	dsn := os.Getenv("DSN")
+	
 	dbConn,err := db.ConnectPostgres(dsn)
+
+	if err != nil {
+		log.Fatal("Cannot connect to database")
+	}
+
+	defer dbConn.DB.Close()
+
 	app := &Application{
 		Config: cfg,
+		Models: services.New(dbConn.DB),
 	}
 
 	err = app.Serve()
@@ -51,3 +65,5 @@ func main() {
 		log.Fatal(err)
 	}
 }
+
+
