@@ -12,3 +12,4 @@ CREATE TABLE IF NOT EXISTS coffees (
     "updated_at" TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 )
 
+

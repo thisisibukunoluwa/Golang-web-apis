@@ -23,6 +23,7 @@ func (c *Coffee) GetAllCoffees() ([]*Coffee, error) {
 	defer cancel()
 
 	query := `SELECT id, name, image, roast, region, price, grind_unit, updated_at FROM coffees`
+	// query1 := `SHOW TABLES`
 	rows, err := db.QueryContext(ctx,query)
 
 	if err != nil {
@@ -57,13 +58,13 @@ func (c *Coffee) CreateCoffee(coffee Coffee) (*Coffee, error) {
 
 	query := `
 		INSERT INTO coffees (name, image, region, roast, price, grind_unit, created_at, updated_at)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8) return *
+		VALUES ($1, $2, $3, $4, $5, $6, $7, $8) returning *
 	`
 
 	_,err := db.ExecContext(
 		ctx,
 		query,
-		coffee.ID,
+		// coffee.ID,
 		coffee.Name,
 		coffee.Image,
 		coffee.Roast,
