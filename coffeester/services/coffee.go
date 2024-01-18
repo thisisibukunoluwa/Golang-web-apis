@@ -40,7 +40,7 @@ func (c *Coffee) GetAllCoffees() ([]*Coffee, error) {
 			&coffee.Region,
 			&coffee.Price,
 			&coffee.GrindUnit,
-			&coffee.CreatedAt,
+			// &coffee.CreatedAt,
 			&coffee.UpdatedAt,
 		)
 
@@ -88,12 +88,12 @@ func (c *Coffee) UpdateCoffee(id string, body Coffee) (*Coffee, error) {
 	query := `
 		UPDATE coffees 
 		SET
-			name = $1
-			image = $2
-			roast = $3
-			price = $4
-			grind_unit = $5
-			region = $6
+			name = $1,
+			image = $2,
+			roast = $3,
+			price = $4,
+			grind_unit = $5,
+			region = $6,
 			updated_at = $7
 		WHERE id = $8
 		returning *
@@ -117,7 +117,17 @@ func (c *Coffee) UpdateCoffee(id string, body Coffee) (*Coffee, error) {
 }
 
 func (c *Coffee) DeleteCoffee(id string) error {
-	
+	ctx,cancel := context.WithTimeout(context.Background(), dbTimeout)
+	defer cancel()
+
+	query := `
+		DELETE FROM coffees where id $1
+	`
+	_, err := db.ExecContext(ctx,query, id)
+	if err != nil {
+		return err 
+	}
+	return nil 
 }
 
 
@@ -138,8 +148,8 @@ func (c *Coffee) CreateCoffee(coffee Coffee) (*Coffee, error) {
 		// coffee.ID,
 		coffee.Name,
 		coffee.Image,
-		coffee.Roast,
 		coffee.Region,
+		coffee.Roast,
 		coffee.Price,
 		coffee.GrindUnit,
 		time.Now(),
